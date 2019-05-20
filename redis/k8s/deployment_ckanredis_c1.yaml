@@ -1,0 +1,36 @@
+kind: Deployment
+apiVersion: apps/v1beta1
+metadata:
+  name: ckan-redis
+  namespace: client1
+spec:
+  selector:
+    matchLabels:
+      app: ckan
+      component: redis
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: ckan
+        component: redis
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kops.k8s.io/instancegroup
+                operator: In
+                values:
+                - nodes
+      containers:
+      - name: ckan-redis
+        image: "redis:alpine"
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 6379
+        resources:
+          requests:
+            memory: "32M"
+            cpu: "100m"

@@ -1,0 +1,68 @@
+kind: Deployment
+apiVersion: apps/v1beta1
+metadata:
+  name: ckan-pg
+  namespace: client1
+spec:
+  selector:
+    matchLabels:
+      app: ckan
+      component: pg
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: ckan
+        component: pg
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kops.k8s.io/instancegroup
+                operator: In
+                values:
+                - nodes
+      containers:
+      - name: ckan-pg
+        image: "860798832671.dkr.ecr.ap-southeast-2.amazonaws.com/ckan-pg:base"
+        env:
+        - name: CKAN_DB
+          value: "ckan_default"
+        - name: CKAN_USER
+          valueFrom:
+            secretKeyRef:
+              name: ckan-pg
+              key: ckanUsername
+        - name: CKAN_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: ckan-pg
+              key: ckanPassword
+        - name: DS_DB
+          value: "datastore_default"
+        - name: DS_USER
+          valueFrom:
+            secretKeyRef:
+              name: ckan-pg
+              key: datastoreUsername
+        - name: DS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: ckan-pg
+              key: datastorePassword
+        imagePullPolicy: Always
+        volumeMounts:
+        - name: ebs
+          mountPath: "/var/lib/postgresql"
+        ports:
+        - containerPort: 5432
+        resources:
+          requests:
+            memory: "256M"
+            cpu: "500m"
+      volumes:
+      - name: ebs
+        persistentVolumeClaim:
+          claimName: ckan-pg

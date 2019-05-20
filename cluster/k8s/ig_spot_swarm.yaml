@@ -1,0 +1,18 @@
+apiVersion: kops/v1alpha2
+kind: InstanceGroup
+metadata:
+  labels:
+    kops.k8s.io/cluster: {{NAME}}
+  name: {{GROUP_NAME_PREFIX}}
+spec:
+  image: kope.io/k8s-1.8-debian-jessie-amd64-hvm-ebs-2018-01-05
+  machineType: {{EC2_TYPE}}
+  maxPrice: {{SPOT_MAX_BID}}
+  maxSize: {{MAX_NODES}}
+  minSize: {{MIN_NODES}}
+  nodeLabels:
+    kops.k8s.io/instancegroup: {{GROUP_NAME_PREFIX}}
+  role: {{ROLE}}
+  rootVolumeSize: {{ROOT_VOLUME_SIZE_IN_GB}}
+  subnets:
+  - {{AWS_AZ}}

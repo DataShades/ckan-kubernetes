@@ -1,0 +1,4 @@
+FROM mdillon/postgis
+MAINTAINER Greg von Nessi "greg.vonnessi@linkdigital.com.au"
+
+ADD ./files/ckan_setup.sh /docker-entrypoint-initdb.d/

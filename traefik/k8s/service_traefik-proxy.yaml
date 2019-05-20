@@ -1,0 +1,19 @@
+apiVersion: "v1"
+kind: "Service"
+metadata:
+  name: traefik-proxy
+  namespace: kube-system
+  annotations:
+    # https://github.com/kubernetes/kubernetes/blob/master/pkg/cloudprovider/providers/aws/aws.go
+    service.beta.kubernetes.io/hostname: "*.k8s.datashades.links.com.au"
+    service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "443"
+    service.beta.kubernetes.io/aws-load-balancer-backend-protocol: http
+    service.beta.kubernetes.io/aws-load-balancer-ssl-cert: "arn:aws:acm:ap-southeast-2:860798832671:certificate/caf42949-86bf-413e-8581-ab2ded8af83d"
+spec:
+  type: LoadBalancer
+  selector:
+    app: traefik-proxy
+    tier: proxy
+  ports:
+    - port: 443
+      targetPort: 80

@@ -1,0 +1,12 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: ckan-pg
+  namespace: client1
+spec:
+  ports:
+    - port: 5432
+      name: pg
+  selector:
+    app: ckan
+    component: pg

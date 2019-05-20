@@ -1,0 +1,12 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: ckan-datapusher
+  namespace: client1
+spec:
+  ports:
+    - port: 8800
+      name: datapusher
+  selector:
+    app: ckan
+    component: datapusher

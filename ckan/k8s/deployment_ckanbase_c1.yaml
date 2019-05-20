@@ -1,0 +1,67 @@
+kind: Deployment
+apiVersion: apps/v1beta1
+metadata:
+  name: ckan-base
+  namespace: client1
+spec:
+  selector:
+    matchLabels:
+      app: ckan
+      component: base
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: ckan
+        component: base
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kops.k8s.io/instancegroup
+                operator: In
+                values:
+                - nodes
+      volumes:
+      - name: ckan-filestore
+        persistentVolumeClaim:
+          claimName: ckan-efs
+      containers:
+      - name: ckan-base
+        image: "860798832671.dkr.ecr.ap-southeast-2.amazonaws.com/ckan-base:test"
+        env:
+        - name: CKAN_SITE_URL
+          value: "https://ckanc1.k8s.datashades.links.com.au"
+        - name: CKAN_SQLALCHEMY_URL
+          valueFrom:
+            secretKeyRef:
+              name: ckan-pg
+              key: sqlUrl
+        - name: CKAN_DATASTORE_WRITE_URL
+          valueFrom:
+            secretKeyRef:
+              name: ckan-pg
+              key: datastoreRWUrl
+        - name: CKAN_DATASTORE_READ_URL
+          valueFrom:
+            secretKeyRef:
+              name: ckan-pg
+              key: datastoreROUrl
+        - name: CKAN_SOLR_URL
+          value: "http://ckan-solr.client1.svc.cluster.local:8983/solr/ckan"
+        - name: CKAN_REDIS_URL
+          value: "redis://ckan-redis.client1.svc.cluster.local:6379/0"
+        - name: CKAN_DATAPUSHER_URL
+          value: "http://ckan-datapusher.client1.svc.cluster.local:8800/"
+        imagePullPolicy: Always
+        volumeMounts:
+        - name: ckan-filestore
+          mountPath: "/var/lib/ckan"
+        ports:
+        - containerPort: 5000
+        resources:
+          requests:
+            memory: "256M"
+            cpu: "200m"

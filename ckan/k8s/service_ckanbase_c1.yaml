@@ -1,0 +1,13 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: ckan-base
+  namespace: client1
+spec:
+  ports:
+    - port: 8080
+      targetPort: 5000
+      name: ckan
+  selector:
+    app: ckan
+    component: base

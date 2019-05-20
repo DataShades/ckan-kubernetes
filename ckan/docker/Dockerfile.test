@@ -1,0 +1,53 @@
+FROM python:2-alpine
+
+MAINTAINER Greg von Nessi "greg.vonnessi@linkdigital.com.au"
+
+# Define environment variables
+ENV CKAN_HOME /usr/lib/ckan
+ENV CKAN_VENV $CKAN_HOME/venv
+ENV CKAN_CONFIG /etc/ckan
+ENV CKAN_STORAGE_PATH=/var/lib/ckan
+
+# Create ckan user
+RUN addgroup -S -g 900 ckan && \
+    adduser -S -u 900 -h $CKAN_HOME -s /bin/false -G ckan ckan
+
+RUN mkdir -p $CKAN_VENV $CKAN_VENV/src $CKAN_CONFIG $CKAN_STORAGE_PATH
+
+ADD ./files/client1/ckan.ini \
+    $CKAN_CONFIG/
+
+# Install and build everything
+RUN apk update && \
+    apk add --no-cache \
+        postgresql-libs \
+        libffi-dev \
+        libmagic && \
+    apk add --no-cache --virtual .build-deps \
+        gcc \
+        git \
+        musl-dev \
+        postgresql-dev && \
+    cd $CKAN_VENV/src && \
+    git clone --single-branch --depth 1 https://github.com/ckan/ckan.git --branch ckan-2.7.4 && \
+    sed -i 's/psycopg2==/psycopg2>=/' $CKAN_VENV/src/ckan/requirements.txt && \
+    pip install -U pip && \
+    pip install --upgrade --no-cache-dir -r $CKAN_VENV/src/ckan/requirements.txt && \
+    pip install --upgrade --no-cache-dir python-magic && \
+    pip install -e $CKAN_VENV/src/ckan/ && \
+    ln -s $CKAN_VENV/src/ckan/ckan/config/who.ini $CKAN_CONFIG/who.ini && \
+    ln -s /usr/local/bin/paster /usr/local/bin/ckan-paster && \
+    cp -v $CKAN_VENV/src/ckan/contrib/docker/ckan-entrypoint.sh /ckan-entrypoint.sh && \
+    chmod +x /ckan-entrypoint.sh && \
+    chown -R ckan:ckan $CKAN_HOME $CKAN_VENV $CKAN_CONFIG $CKAN_STORAGE_PATH && \
+    apk --purge del .build-deps
+
+# WORKDIR /
+
+# CMD ["sh", "-c", "tail -f /dev/null"]
+
+ENTRYPOINT ["/ckan-entrypoint.sh"]
+
+CMD ["ckan-paster","serve","/etc/ckan/ckan.ini"]
+
+EXPOSE 5000

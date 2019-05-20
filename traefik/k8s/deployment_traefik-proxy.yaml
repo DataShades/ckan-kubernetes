@@ -1,0 +1,58 @@
+kind: Deployment
+apiVersion: extensions/v1beta1
+metadata:
+  name: traefik-proxy
+  namespace: kube-system
+  labels:
+    app: traefik-proxy
+    tier: proxy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: traefik-proxy
+      tier: proxy
+  template:
+    metadata:
+      labels:
+        app: traefik-proxy
+        tier: proxy
+    spec:
+      serviceAccountName: traefik-proxy
+      terminationGracePeriodSeconds: 60
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kops.k8s.io/instancegroup
+                operator: In
+                values:
+                - nodes
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 1
+            preference:
+              matchExpressions:
+              - key: kops.k8s.io/instancegroup
+                operator: In
+                values:
+                - nodes
+      containers:
+      - image: traefik
+        name: traefik-ingress-lb
+        resources:
+          limits:
+            cpu: 200m
+            memory: 30Mi
+          requests:
+            cpu: 100m
+            memory: 20Mi
+        ports:
+        - containerPort: 80
+          hostPort: 80
+          name: traefik-proxy
+        - containerPort: 8080
+          name: traefik-ui
+        args:
+        - --api
+        - --kubernetes

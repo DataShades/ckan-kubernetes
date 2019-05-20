@@ -1,0 +1,14 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: ckan-solr
+  namespace: client1
+spec:
+  ports:
+    - port: 8983
+      name: solr
+      protocol: TCP
+  clusterIP: "None"
+  selector:
+    app: ckan
+    component: solr

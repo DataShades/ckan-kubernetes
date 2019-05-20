@@ -1,0 +1,34 @@
+FROM python:2-alpine
+
+MAINTAINER Greg von Nessi "greg.vonnessi@linkdigital.com.au"
+
+# Install required system packages
+RUN apk update && \
+    apk add --no-cache \
+        postgresql-libs \
+        libffi-dev \
+        libxml2-dev \
+        libxslt-dev \
+        tini && \
+    apk add --no-cache --virtual .build-deps \
+        gcc \
+        git \
+        musl-dev \
+        postgresql-dev && \
+    git clone --depth 1 -b 0.0.13 https://github.com/ckan/datapusher.git /datapusher && \
+    cd /datapusher && \
+    pip install -r requirements.txt && \
+    pip uninstall -y flask && \
+    pip install flask==0.12 \
+        psycopg2 && \
+    python setup.py develop && \
+    apk --purge del .build-deps
+
+ENV JOB_CONFIG='/datapusher/src/datapusher/deployment/datapusher_settings.py'
+ENV FLASK_APP='/datapusher/wsgi.py'
+
+ENTRYPOINT ["/sbin/tini", "--"]
+
+CMD ["python", "/datapusher/datapusher/main.py", "/datapusher/deployment/datapusher_settings.py"]
+
+EXPOSE 8800

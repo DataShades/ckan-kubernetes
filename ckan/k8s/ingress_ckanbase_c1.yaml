@@ -1,0 +1,16 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: ckan-base
+  namespace: client1
+  annotations:
+    kubernetes.io/ingress.class: traefik
+spec:
+  rules:
+  - host: ckanc1.k8s.datashades.links.com.au
+    http:
+      paths:
+      - path: "/"
+        backend:
+          serviceName: ckan-base
+          servicePort: 8080

@@ -1,0 +1,14 @@
+FROM 860798832671.dkr.ecr.ap-southeast-2.amazonaws.com/ckan-base:base
+
+MAINTAINER Greg von Nessi "greg.vonnessi@linkdigital.com.au"
+
+# Define environment variables
+
+ENV CKAN_CONFIG /etc/ckan
+
+ADD ./files/client2/ckan.ini \
+    $CKAN_CONFIG/
+
+RUN chown -R ckan:ckan $CKAN_CONFIG
+
+CMD ["ckan-paster","serve","/etc/ckan/ckan.ini"]
